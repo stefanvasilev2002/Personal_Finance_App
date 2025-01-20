@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class AccountController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index()
     {
         $accounts = auth()->user()->accounts;

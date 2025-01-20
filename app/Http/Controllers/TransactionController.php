@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use App\Models\Category;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
+    use AuthorizesRequests;
     public function index()
     {
         $user = auth()->user();
@@ -39,12 +43,10 @@ class TransactionController extends Controller
             'is_recurring' => 'boolean'
         ]);
 
-        // Verify account belongs to user
         $account = auth()->user()->accounts()->findOrFail($validated['account_id']);
 
         $transaction = Transaction::create($validated);
 
-        // Update account balance
         if ($validated['type'] === 'income') {
             $account->increment('balance', $validated['amount']);
         } else {
