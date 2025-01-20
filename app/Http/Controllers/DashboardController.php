@@ -2,20 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Account;
 use App\Models\Transaction;
-use App\Models\Budget;
-use App\Models\FinancialGoal;
-
 class DashboardController extends Controller
 {
     public function index()
     {
         $user = auth()->user();
-
         $accounts = $user->accounts;
         $totalBalance = $accounts->sum('balance');
+        $accountIds = $accounts->pluck('id');
 
         $recentTransactions = Transaction::whereIn('account_id', $accounts->pluck('id'))
             ->with(['account', 'category'])
@@ -30,7 +25,8 @@ class DashboardController extends Controller
 
         $goals = $user->financialGoals;
 
-        return view('dashboard', compact(
+
+        return view('dashboard.index', compact(
             'accounts',
             'totalBalance',
             'recentTransactions',
