@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\FinancialGoal;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class FinancialGoalController extends Controller
 {
+    use AuthorizesRequests;
     public function index()
     {
         $goals = auth()->user()->financialGoals()
@@ -29,7 +31,7 @@ class FinancialGoalController extends Controller
             'current_amount' => 'required|numeric|min:0',
             'target_date' => 'required|date|after:today',
             'priority' => 'required|in:low,medium,high',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
         ]);
 
         auth()->user()->financialGoals()->create($validated);

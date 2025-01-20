@@ -16,7 +16,8 @@ class FinancialGoal extends Model
         'current_amount',
         'target_date',
         'type',
-        'status'
+        'status',
+        'priority'
     ];
 
     protected $casts = [

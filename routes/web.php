@@ -22,7 +22,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('accounts', AccountController::class);
     Route::resource('transactions', TransactionController::class);
     Route::resource('budgets', BudgetController::class);
-    Route::resource('goals', FinancialGoalController::class);
+    Route::resource('financial-goals', FinancialGoalController::class);
+    Route::patch('/financial-goals/{financialGoal}/progress', [FinancialGoalController::class, 'updateProgress'])
+        ->name('financial-goals.update-progress');
 });
 
 require __DIR__.'/auth.php';
