@@ -31,4 +31,36 @@ class Budget extends Model
     {
         return $this->belongsTo(Category::class);
     }
+    public function isOverBudget()
+    {
+        $spending = $this->category
+            ->transactions()
+            ->where('type', 'expense')
+            ->whereBetween('date', [
+                $this->start_date,
+                $this->end_date ?? now()
+            ])
+            ->sum('amount');
+
+        return $spending > $this->amount;
+    }
+
+    // Recommended to also add this helper method for reuse
+    public function getCurrentSpending()
+    {
+        return $this->category
+            ->transactions()
+            ->where('type', 'expense')
+            ->whereBetween('date', [
+                $this->start_date,
+                $this->end_date ?? now()
+            ])
+            ->sum('amount');
+    }
+
+    public function getSpendingPercentage()
+    {
+        $spending = $this->getCurrentSpending();
+        return $this->amount > 0 ? min(($spending / $this->amount) * 100, 100) : 0;
+    }
 }

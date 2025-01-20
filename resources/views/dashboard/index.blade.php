@@ -90,6 +90,35 @@
                         @endif
                     </div>
                 </div>
+                <div class="mt-6 bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-medium text-gray-200 mb-4">Financial Insights</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Monthly Spending Trend -->
+                            <div class="border border-gray-700 rounded-lg p-4">
+                                <h4 class="text-gray-200 mb-2">Top Spending Categories</h4>
+                                @foreach($topCategories as $category)
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-gray-400">{{ $category->name }}</span>
+                                        <span class="text-red-400">${{ number_format($category->total, 2) }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Savings Rate -->
+                            <div class="border border-gray-700 rounded-lg p-4">
+                                <h4 class="text-gray-200 mb-2">Monthly Savings Rate</h4>
+                                <div class="flex items-end space-x-2">
+                                    <span class="text-2xl text-green-400">{{ $savingsRate }}%</span>
+                                    <span class="text-gray-400 text-sm">of income</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
+                                    <div class="bg-green-600 h-2.5 rounded-full" style="width: {{ $savingsRate }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </x-slot>
