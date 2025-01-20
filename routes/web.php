@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FinancialGoalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\TransferController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -25,6 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('financial-goals', FinancialGoalController::class);
     Route::patch('/financial-goals/{financialGoal}/progress', [FinancialGoalController::class, 'updateProgress'])
         ->name('financial-goals.update-progress');
+
+    Route::post('/transfers', [TransferController::class, 'store'])->name('transfers.store');
+
 });
 
 require __DIR__.'/auth.php';
