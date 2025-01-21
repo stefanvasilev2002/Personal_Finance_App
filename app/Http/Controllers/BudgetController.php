@@ -18,11 +18,25 @@ class BudgetController extends Controller
             ->get()
             ->groupBy('category.type');
 
+        $totalBudget = $budgets->flatten()->sum('amount');
+
+        $totalSpent = $budgets->flatten()->sum(function ($budget) {
+            return $budget->getCurrentSpending();
+        });
+
+        $remaining = $totalBudget - $totalSpent;
+
         $categories = Category::where('user_id', auth()->id())
             ->get()
             ->groupBy('type');
 
-        return view('budgets.index', compact('budgets', 'categories'));
+        return view('budgets.index',
+            compact(
+                'budgets',
+                'categories',
+                'totalSpent',
+                'remaining',
+                'totalBudget'));
     }
 
     public function create()

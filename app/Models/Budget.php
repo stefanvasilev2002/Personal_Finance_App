@@ -45,7 +45,6 @@ class Budget extends Model
         return $spending > $this->amount;
     }
 
-    // Recommended to also add this helper method for reuse
     public function getCurrentSpending()
     {
         return $this->category
@@ -53,12 +52,37 @@ class Budget extends Model
             ->where('type', 'expense')
             ->whereBetween('date', [
                 $this->start_date,
-                $this->end_date ?? now()
+                $this->end_date ?? $this->getDefaultEndDate()
             ])
             ->sum('amount');
     }
 
     public function getSpendingPercentage()
+    {
+        $spending = $this->getCurrentSpending();
+        return $this->amount > 0 ? min(($spending / $this->amount) * 100, 100) : 0;
+    }
+    public function getRemainingDays()
+    {
+        $endDate = $this->end_date ?? $this->getDefaultEndDate();
+        return round(max(0, now()->diffInDays($endDate)));
+    }
+
+    public function getDailyBudget()
+    {
+        $totalDays = max(1, $this->start_date->diffInDays($this->end_date ?? $this->getDefaultEndDate()));
+        return $this->amount / $totalDays;
+    }
+
+    protected function getDefaultEndDate()
+    {
+        if ($this->period === 'monthly') {
+            return $this->start_date->copy()->addMonth();
+        }
+        return $this->start_date->copy()->addYear();
+    }
+
+    public function getSpentPercentage()
     {
         $spending = $this->getCurrentSpending();
         return $this->amount > 0 ? min(($spending / $this->amount) * 100, 100) : 0;

@@ -18,7 +18,35 @@
                     {{ session('success') }}
                 </div>
             @endif
+                <!-- Add after success message -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6">
+                            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Budget</h3>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                                ${{ number_format($totalBudget, 2) }}
+                            </p>
+                        </div>
+                    </div>
 
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6">
+                            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Spent</h3>
+                            <p class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
+                                ${{ number_format($totalSpent, 2) }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6">
+                            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Remaining</h3>
+                            <p class="text-2xl font-bold {{ $remaining >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} mt-1">
+                                ${{ number_format($remaining, 2) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     @forelse($budgets as $type => $typebudgets)
@@ -34,6 +62,10 @@
                                                 <h4 class="font-medium text-gray-900 dark:text-gray-100">
                                                     {{ $budget->category->name }}
                                                 </h4>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                                    {{ ucfirst($budget->period) }} •
+                                                    {{ $budget->getRemainingDays() }} days left
+                                                </p>
                                                 <p class="text-sm text-gray-600 dark:text-gray-400">
                                                     {{ ucfirst($budget->period) }}
                                                 </p>
@@ -58,26 +90,52 @@
                                         <p class="text-2xl font-bold mt-2 text-gray-900 dark:text-gray-100">
                                             ${{ number_format($budget->amount, 2) }}
                                         </p>
-                                        <div class="mt-2">
+                                        <div class="mt-4">
+                                            @php
+                                                $spending = $budget->category
+                                                    ->transactions()
+                                                    ->where('type', 'expense')
+                                                    ->whereBetween('date', [
+                                                        $budget->start_date,
+                                                        $budget->end_date ?? now()
+                                                    ])
+                                                    ->sum('amount');
+                                                $percentage = min(($spending / $budget->amount) * 100, 100);
+                                            @endphp
+                                            <div class="flex justify-between text-sm mb-1">
+                                                <span class="text-gray-600 dark:text-gray-400">Spent: ${{ number_format($spending, 2) }}</span>
+                                                <span class="text-gray-600 dark:text-gray-400">of ${{ number_format($budget->amount, 2) }}</span>
+                                            </div>
                                             <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                                                 @php
-                                                    $spending = $budget->category
-                                                        ->transactions()
-                                                        ->where('type', 'expense')
-                                                        ->whereBetween('date', [
-                                                            $budget->start_date,
-                                                            $budget->end_date ?? now()
-                                                        ])
-                                                        ->sum('amount');
                                                     $percentage = min(($spending / $budget->amount) * 100, 100);
+                                                    $progressColor = $percentage > 90 ? 'bg-red-600' :
+                                                                   ($percentage > 75 ? 'bg-yellow-600' : 'bg-blue-600');
                                                 @endphp
-                                                <div class="bg-blue-600 h-2.5 rounded-full"
+                                                <div class="{{ $progressColor }} h-2.5 rounded-full"
                                                      style="width: {{ $percentage }}%">
                                                 </div>
                                             </div>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                                ${{ number_format($spending, 2) }} spent
-                                            </p>
+
+                                            @if($percentage > 90)
+                                                <p class="text-sm text-red-600 dark:text-red-400 mt-2">
+                                                    <svg class="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                    </svg>
+                                                    Over budget!
+                                                </p>
+                                            @elseif($percentage > 75)
+                                                <p class="text-sm text-yellow-600 dark:text-yellow-400 mt-2">
+                                                    <svg class="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                    </svg>
+                                                    Approaching limit
+                                                </p>
+                                            @endif
+
+                                            <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                                <span>Daily Budget: ${{ number_format($budget->getDailyBudget(), 2) }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 @endforeach
