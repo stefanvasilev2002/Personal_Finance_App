@@ -70,8 +70,8 @@ return [
     |
     */
 
-    'links' => env('FILESYSTEM_DRIVER') === 's3' ? [] : [
-        public_path('storage') => storage_path('app/public'),
+    'links' => [
+        //public_path('storage') => storage_path('app/public'),
     ],
 
 ];
