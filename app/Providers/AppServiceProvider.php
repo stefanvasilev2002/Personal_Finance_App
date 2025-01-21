@@ -21,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        View::addLocation('/app/resources/views');
+        View::addLocation('/tmp/build_' . getenv('HEROKU_SLUG_COMMIT') . '/resources/views');
+
         Blade::component('layouts.app', 'app-layout');
 
     }
