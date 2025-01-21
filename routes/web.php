@@ -19,7 +19,24 @@ Route::get('/', function () {
         'Directory Contents' => scandir(resource_path('views'))
     ]);
 });
-
+Route::get('/debug-views', function () {
+    try {
+        return response()->json([
+            'app_path' => app_path(),
+            'base_path' => base_path(),
+            'view_paths' => config('view.paths'),
+            'welcome_exists' => file_exists(resource_path('views/welcome.blade.php')),
+            'welcome_content' => file_exists(resource_path('views/welcome.blade.php')) ?
+                file_get_contents(resource_path('views/welcome.blade.php')) : null,
+            'compiled_path' => config('view.compiled'),
+            'storage_perms' => is_writable(storage_path('framework/views')),
+            'storage_files' => scandir(storage_path('framework/views')),
+            'resource_files' => scandir(resource_path('views'))
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
+});
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
