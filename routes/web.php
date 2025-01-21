@@ -10,7 +10,14 @@ use App\Http\Controllers\TransferController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $viewPaths = config('view.paths');
+    dd([
+        'View Paths' => $viewPaths,
+        'Welcome Path' => resource_path('views/welcome.blade.php'),
+        'File Exists' => file_exists(resource_path('views/welcome.blade.php')),
+        'Is Readable' => is_readable(resource_path('views/welcome.blade.php')),
+        'Directory Contents' => scandir(resource_path('views'))
+    ]);
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
