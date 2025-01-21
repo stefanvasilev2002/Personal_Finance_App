@@ -81,8 +81,7 @@ return [
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
-
-        'pgsql' => [
+        /*'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
@@ -95,8 +94,21 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'prefer',
+        ],*/
+        'pgsql' => [
+            'driver' => 'pgsql',
+            'url' => env('DATABASE_URL'),
+            'host' => isset(parse_url(env('DATABASE_URL'))['host']) ? parse_url(env('DATABASE_URL'))['host'] : null,
+            'port' => isset(parse_url(env('DATABASE_URL'))['port']) ? parse_url(env('DATABASE_URL'))['port'] : null,
+            'database' => isset(parse_url(env('DATABASE_URL'))['path']) ? ltrim(parse_url(env('DATABASE_URL'))['path'], '/') : null,
+            'username' => isset(parse_url(env('DATABASE_URL'))['user']) ? parse_url(env('DATABASE_URL'))['user'] : null,
+            'password' => isset(parse_url(env('DATABASE_URL'))['pass']) ? parse_url(env('DATABASE_URL'))['pass'] : null,
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'schema' => 'public',
+            'sslmode' => 'prefer',
         ],
-
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),
