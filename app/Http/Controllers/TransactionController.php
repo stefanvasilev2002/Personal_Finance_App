@@ -9,15 +9,61 @@ use Illuminate\Http\Request;
 class TransactionController extends Controller
 {
     use AuthorizesRequests;
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
-        $transactions = Transaction::whereIn('account_id', $user->accounts->pluck('id'))
-            ->with(['account', 'category'])
-            ->latest()
-            ->paginate(15);
 
-        return view('transactions.index', compact('transactions'));
+        $query = Transaction::whereIn('account_id', $user->accounts->pluck('id'))
+            ->with(['account', 'category']);
+
+        // Apply date range filter
+        if ($request->filled('date_range')) {
+            $query->when($request->date_range === 'today', function ($q) {
+                return $q->whereDate('date', today());
+            })->when($request->date_range === 'week', function ($q) {
+                return $q->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()]);
+            })->when($request->date_range === 'month', function ($q) {
+                return $q->whereMonth('date', now()->month)->whereYear('date', now()->year);
+            })->when($request->date_range === 'year', function ($q) {
+                return $q->whereYear('date', now()->year);
+            });
+        }
+
+        // Apply account filter
+        if ($request->filled('account')) {
+            $query->where('account_id', $request->account);
+        }
+
+        // Apply category filter
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
+
+        // Apply type filter
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        // Calculate summaries
+        $totalIncome = (clone $query)->where('type', 'income')->sum('amount');
+        $totalExpenses = (clone $query)->where('type', 'expense')->sum('amount');
+        $netBalance = $totalIncome - $totalExpenses;
+
+        // Get paginated results
+        $transactions = $query->latest()->paginate(15)->withQueryString();
+
+        // Get filter options
+        $accounts = $user->accounts;
+        $categories = $user->categories;
+
+        return view('transactions.index', compact(
+            'transactions',
+            'accounts',
+            'categories',
+            'totalIncome',
+            'totalExpenses',
+            'netBalance'
+        ));
     }
 
     public function create()
