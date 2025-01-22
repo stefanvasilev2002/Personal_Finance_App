@@ -41,10 +41,11 @@
         ],
         "post-install-cmd": [
             "@php artisan clear-compiled",
-            "@php artisan config:cache",
-            "@php artisan route:cache",
-            "chmod -R 777 public/"
-        ],
+            "@php artisan config:clear",
+            "@php artisan view:clear",
+            "@php artisan cache:clear",
+            "@php artisan route:clear"
+        ]
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
