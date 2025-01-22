@@ -27,6 +27,9 @@
                     <x-nav-link :href="route('financial-goals.index')" :active="request()->routeIs('financial-goals.*')">
                         {{ __('Financial Goals') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
+                        {{ __('Categories') }}
+                    </x-nav-link>
                 </div>
             </div>
 
