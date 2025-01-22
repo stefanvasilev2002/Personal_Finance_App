@@ -45,7 +45,7 @@
             "@php artisan view:clear",
             "@php artisan cache:clear",
             "@php artisan route:clear"
-        ]
+        ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
