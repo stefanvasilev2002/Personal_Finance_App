@@ -15,7 +15,8 @@ class FinancialGoalController extends Controller
             ->orderBy('target_date')
             ->get();
 
-        return view('financial-goals.index', compact('goals'));
+        return view('financial-goals.index',
+            compact('goals'));
     }
 
     public function create()
@@ -44,14 +45,16 @@ class FinancialGoalController extends Controller
     {
         $this->authorize('view', $financialGoal);
 
-        return view('financial-goals.show', compact('financialGoal'));
+        return view('financial-goals.show',
+            compact('financialGoal'));
     }
 
     public function edit(FinancialGoal $financialGoal)
     {
         $this->authorize('update', $financialGoal);
 
-        return view('financial-goals.edit', compact('financialGoal'));
+        return view('financial-goals.edit',
+            compact('financialGoal'));
     }
 
     public function update(Request $request, FinancialGoal $financialGoal)

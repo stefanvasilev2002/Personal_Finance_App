@@ -71,7 +71,8 @@ class BudgetController extends Controller
             ->whereBetween('date', [$budget->start_date, $budget->end_date ?? now()])
             ->sum('amount');
 
-        return view('budgets.show', compact('budget', 'spending'));
+        return view('budgets.show',
+            compact('budget', 'spending'));
     }
 
     public function edit(Budget $budget)
@@ -79,7 +80,8 @@ class BudgetController extends Controller
         $this->authorize('update', $budget);
         $categories = auth()->user()->categories;
 
-        return view('budgets.edit', compact('budget', 'categories'));
+        return view('budgets.edit',
+            compact('budget', 'categories'));
     }
 
     public function update(Request $request, Budget $budget)

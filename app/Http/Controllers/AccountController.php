@@ -13,7 +13,8 @@ class AccountController extends Controller
     public function index()
     {
         $accounts = auth()->user()->accounts;
-        return view('accounts.index', compact('accounts'));
+        return view('accounts.index',
+            compact('accounts'));
     }
 
     public function create()
@@ -32,7 +33,8 @@ class AccountController extends Controller
 
         auth()->user()->accounts()->create($validated);
 
-        return redirect()->route('accounts.index')
+        return redirect()
+            ->route('accounts.index')
             ->with('success', 'Account created successfully.');
     }
 
@@ -40,18 +42,21 @@ class AccountController extends Controller
     {
         $this->authorize('view', $account);
 
-        $transactions = $account->transactions()
+        $transactions = $account
+            ->transactions()
             ->with('category')
             ->latest()
             ->paginate(15);
 
-        return view('accounts.show', compact('account', 'transactions'));
+        return view('accounts.show',
+            compact('account', 'transactions'));
     }
 
     public function edit(Account $account)
     {
         $this->authorize('update', $account);
-        return view('accounts.edit', compact('account'));
+        return view('accounts.edit',
+            compact('account'));
     }
 
     public function update(Request $request, Account $account)

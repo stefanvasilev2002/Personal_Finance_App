@@ -21,18 +21,16 @@ class TransferController extends Controller
             $fromAccount = Account::findOrFail($validated['from_account_id']);
             $toAccount = Account::findOrFail($validated['to_account_id']);
 
-            // Get or create transfer category with user_id
             $transferCategory = Category::firstOrCreate(
                 [
                     'name' => 'Transfers',
                     'user_id' => auth()->id()
                 ],
                 [
-                    'type' => 'transfer' // Add any other default attributes
+                    'type' => 'transfer'
                 ]
             );
 
-            // Create withdrawal transaction
             $fromAccount->transactions()->create([
                 'type' => 'expense',
                 'amount' => $validated['amount'],
@@ -41,7 +39,6 @@ class TransferController extends Controller
                 'category_id' => $transferCategory->id
             ]);
 
-            // Create deposit transaction
             $toAccount->transactions()->create([
                 'type' => 'income',
                 'amount' => $validated['amount'],
@@ -50,7 +47,6 @@ class TransferController extends Controller
                 'category_id' => $transferCategory->id
             ]);
 
-            // Update account balances
             $fromAccount->decrement('balance', $validated['amount']);
             $toAccount->increment('balance', $validated['amount']);
         });

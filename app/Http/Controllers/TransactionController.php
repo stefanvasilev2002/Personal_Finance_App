@@ -16,7 +16,6 @@ class TransactionController extends Controller
         $query = Transaction::whereIn('account_id', $user->accounts->pluck('id'))
             ->with(['account', 'category']);
 
-        // Apply date range filter
         if ($request->filled('date_range')) {
             $query->when($request->date_range === 'today', function ($q) {
                 return $q->whereDate('date', today());
@@ -29,30 +28,24 @@ class TransactionController extends Controller
             });
         }
 
-        // Apply account filter
         if ($request->filled('account')) {
             $query->where('account_id', $request->account);
         }
 
-        // Apply category filter
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
         }
 
-        // Apply type filter
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
 
-        // Calculate summaries
         $totalIncome = (clone $query)->where('type', 'income')->sum('amount');
         $totalExpenses = (clone $query)->where('type', 'expense')->sum('amount');
         $netBalance = $totalIncome - $totalExpenses;
 
-        // Get paginated results
         $transactions = $query->latest()->paginate(15)->withQueryString();
 
-        // Get filter options
         $accounts = $user->accounts;
         $categories = $user->categories;
 
@@ -71,7 +64,8 @@ class TransactionController extends Controller
         $accounts = auth()->user()->accounts;
         $categories = auth()->user()->categories;
 
-        return view('transactions.create', compact('accounts', 'categories'));
+        return view('transactions.create',
+            compact('accounts', 'categories'));
     }
 
     public function store(Request $request)
@@ -130,7 +124,6 @@ class TransactionController extends Controller
             'is_recurring' => 'boolean'
         ]);
 
-        // Revert old transaction impact on balance
         if ($transaction->type === 'income') {
             $transaction->account->decrement('balance', $transaction->amount);
         } else {
@@ -139,7 +132,6 @@ class TransactionController extends Controller
 
         $transaction->update($validated);
 
-        // Apply new transaction impact
         if ($validated['type'] === 'income') {
             $transaction->account->increment('balance', $validated['amount']);
         } else {
@@ -154,7 +146,6 @@ class TransactionController extends Controller
     {
         $this->authorize('delete', $transaction);
 
-        // Revert transaction impact on balance
         if ($transaction->type === 'income') {
             $transaction->account->decrement('balance', $transaction->amount);
         } else {

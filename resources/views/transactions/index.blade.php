@@ -12,7 +12,6 @@
     </x-slot>
 
     <div class="py-12 p-6">
-        <!-- Add this right after the success message -->
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
             <div class="p-6">
                 <form action="{{ route('transactions.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Transaction;
+use Illuminate\Support\Carbon;
+
 class DashboardController extends Controller
 {
     public function index()
@@ -13,10 +15,10 @@ class DashboardController extends Controller
         $totalBalance = $accounts->sum('balance');
         $accountIds = $accounts->pluck('id');
 
-        $recentTransactions = Transaction::whereIn('account_id', $accounts->pluck('id'))
+        $recentTransactions = Transaction::whereIn('account_id', $accountIds)
             ->with(['account', 'category'])
             ->latest()
-            ->take(5)
+            ->take(6)
             ->get();
 
         $budgets = $user->budgets()
@@ -40,7 +42,6 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Calculate savings rate
         $monthlyIncome = Transaction::whereIn('account_id', $accounts->pluck('id'))
             ->where('type', 'income')
             ->whereMonth('date', now()->month)
@@ -56,10 +57,8 @@ class DashboardController extends Controller
             : 0;
         $savingsRate = round($savingsRate, 2);
 
-        // Generate alerts
         $alerts = collect();
 
-        // Check low balances
         foreach ($accounts as $account) {
             if ($account->balance < 100) {
                 $alerts->push([
@@ -69,7 +68,6 @@ class DashboardController extends Controller
             }
         }
 
-        // Check budget overruns
         foreach ($user->budgets as $budget) {
             if ($budget->isOverBudget()) {
                 $alerts->push([
@@ -79,17 +77,19 @@ class DashboardController extends Controller
             }
         }
 
-        // Upcoming bills (from recurring transactions)
+        $now = Carbon::now();
+        $nextMonth = $now->copy()->addMonth()->startOfMonth();
+        $daysUntilNextMonth = $now->diffInDays($nextMonth);
+
         $upcomingBills = Transaction::whereIn('account_id', $accounts->pluck('id'))
             ->where('is_recurring', true)
             ->where('type', 'expense')
             ->get()
-            ->map(function ($transaction) {
-                // Calculate next due date based on recurring pattern
+            ->map(function ($transaction) use ($daysUntilNextMonth) {
                 return [
                     'description' => $transaction->description,
                     'amount' => $transaction->amount,
-                    'due_days' => $transaction->getNextDueDate()->diffInDays(now())
+                    'due_days' => $daysUntilNextMonth
                 ];
             })
             ->sortBy('due_days')

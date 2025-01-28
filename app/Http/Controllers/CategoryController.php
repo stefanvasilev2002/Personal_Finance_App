@@ -10,7 +10,9 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = auth()->user()->categories()->orderBy('name')->get();
-        return view('categories.index', compact('categories'));
+
+        return view('categories.index',
+            compact('categories'));
     }
 
     public function create()
@@ -23,7 +25,6 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|max:255',
             'type' => 'required|in:income,expense',
-            // Fixed the color validation regex pattern
             'color' => ['required', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
             'icon' => 'required|string|max:50'
         ]);
@@ -37,7 +38,8 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        return view('categories.edit', compact('category'));
+        return view('categories.edit',
+            compact('category'));
     }
 
     public function update(Request $request, Category $category)
@@ -45,7 +47,6 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|max:255',
             'type' => 'required|in:income,expense',
-            // Fixed the color validation regex pattern
             'color' => ['required', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
             'icon' => 'required|string|max:50'
         ]);
