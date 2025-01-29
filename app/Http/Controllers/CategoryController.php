@@ -59,8 +59,35 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        $category->delete();
-        return redirect()->route('categories.index')
-            ->with('success', 'Category deleted successfully.');
+        if (str_starts_with($category->name, 'Other ')) {
+            return redirect()->route('categories.index')
+                ->with('error', 'Default categories cannot be deleted.');
+        }
+
+        $defaultCategory = Category::createDefaultCategory($category->type, auth()->id());
+
+        \DB::beginTransaction();
+
+        try {
+            $category->transactions()->update([
+                'category_id' => $defaultCategory->id
+            ]);
+
+            $category->budgets()->update([
+                'category_id' => $defaultCategory->id
+            ]);
+
+            $category->delete();
+
+            \DB::commit();
+
+            return redirect()->route('categories.index')
+                ->with('success', 'Category deleted successfully. Related items have been moved to the default category.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+
+            return redirect()->route('categories.index')
+                ->with('error', 'An error occurred while deleting the category.');
+        }
     }
 }

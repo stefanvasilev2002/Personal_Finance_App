@@ -16,7 +16,28 @@ class Category extends Model
         'color',
         'icon'
     ];
+    public static function getDefaultCategory(string $type, int $userId): ?Category
+    {
+        return self::where('user_id', $userId)
+            ->where('type', $type)
+            ->where('name', 'Other ' . ucfirst($type))
+            ->first();
+    }
 
+    public static function createDefaultCategory(string $type, int $userId): Category
+    {
+        return self::firstOrCreate(
+            [
+                'user_id' => $userId,
+                'type' => $type,
+                'name' => 'Other ' . ucfirst($type)
+            ],
+            [
+                'color' => $type === 'income' ? '#4CAF50' : '#FF5722',
+                'icon' => $type === 'income' ? 'wallet' : 'shopping-cart'
+            ]
+        );
+    }
     public function user()
     {
         return $this->belongsTo(User::class);
