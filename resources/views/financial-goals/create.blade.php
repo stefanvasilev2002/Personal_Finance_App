@@ -81,20 +81,10 @@
                             @enderror
                         </div>
 
-                        <div class="mb-4">
-                            <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Description (Optional)
-                            </label>
-                            <textarea name="description" id="description" rows="3"
-                                      class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-                            @error('description')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         <div class="flex justify-end">
+                            <x-back-button fallback-route="financial-goals.index" text="Back" />
                             <button type="submit"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                    class="ml-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                 Create Goal
                             </button>
                         </div>

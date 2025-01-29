@@ -64,7 +64,7 @@
                             </button>
 
                             <a href="{{ route('accounts.index') }}"
-                               class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 font-medium">
+                               class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
                                 Cancel
                             </a>
                         </div>

@@ -90,8 +90,12 @@
                         </div>
 
                         <div class="flex justify-end">
+                            <a href="{{ route('budgets.index') }}"
+                               class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                                Cancel
+                            </a>
                             <button type="submit"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                    class="ml-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                 Update Budget
                             </button>
                         </div>

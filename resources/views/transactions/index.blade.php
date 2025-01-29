@@ -5,14 +5,14 @@
                 {{ __('Transactions') }}
             </h2>
             <a href="{{ route('transactions.create') }}"
-               class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+               class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 New Transaction
             </a>
         </div>
     </x-slot>
 
     <div class="py-12 p-6">
-        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
             <div class="p-6">
                 <form action="{{ route('transactions.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <!-- Date Range -->
@@ -66,7 +66,7 @@
                     <!-- Filter Button -->
                     <div class="col-span-full flex justify-end space-x-2">
                         <a href="{{ route('transactions.index') }}"
-                           class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+                           class="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700">
                             Clear Filters
                         </a>
                         <button type="submit"
@@ -79,7 +79,7 @@
         </div>
 
         <!-- Add Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <!-- Income Summary -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
@@ -129,43 +129,45 @@
                             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
-                                    <th scope="col" class="py-3 px-6">Date</th>
-                                    <th scope="col" class="py-3 px-6">Account</th>
-                                    <th scope="col" class="py-3 px-6">Category</th>
-                                    <th scope="col" class="py-3 px-6">Description</th>
-                                    <th scope="col" class="py-3 px-6">Type</th>
-                                    <th scope="col" class="py-3 px-6">Amount</th>
-                                    <th scope="col" class="py-3 px-6">Actions</th>
+                                    <th scope="col" class="py-3 px-6 whitespace-nowrap">Date</th>
+                                    <th scope="col" class="py-3 px-6 whitespace-nowrap">Account</th>
+                                    <th scope="col" class="py-3 px-6 whitespace-nowrap">Category</th>
+                                    <th scope="col" class="py-3 px-6 whitespace-nowrap">Description</th>
+                                    <th scope="col" class="py-3 px-6 whitespace-nowrap">Type</th>
+                                    <th scope="col" class="py-3 px-6 whitespace-nowrap">Amount</th>
+                                    <th scope="col" class="py-3 px-6 whitespace-nowrap">Actions</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 @foreach($transactions as $transaction)
                                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                        <td class="py-4 px-6">
+                                        <td class="py-4 px-6 whitespace-nowrap">
                                             {{ $transaction->date->format('Y-m-d') }}
                                         </td>
-                                        <td class="py-4 px-6">
+                                        <td class="py-4 px-6 whitespace-nowrap max-w-[150px] truncate">
                                             {{ $transaction->account->name }}
                                         </td>
-                                        <td class="py-4 px-6">
-                                            {{ $transaction->category->name }}
+                                        <td class="py-4 px-6 whitespace-nowrap flex items-center gap-2 max-w-[150px]">
+                                            <span class="">{{ $transaction->category->name }}</span>
+                                            <i class="fas fa-{{ $transaction->category->icon }} text-sm flex-shrink-0"
+                                               style="color: {{ $transaction->category->color }}"></i>
                                         </td>
-                                        <td class="py-4 px-6">
+                                        <td class="py-4 px-6 max-w-[200px] truncate">
                                             {{ $transaction->description ?? '-' }}
                                         </td>
-                                        <td class="py-4 px-6">
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                    {{ $transaction->type === 'income'
-                                                        ? 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400'
-                                                        : 'bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-400' }}">
-                                                    {{ ucfirst($transaction->type) }}
-                                                </span>
+                                        <td class="py-4 px-6 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                        {{ $transaction->type === 'income'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-400' }}">
+                        {{ ucfirst($transaction->type) }}
+                    </span>
                                         </td>
-                                        <td class="py-4 px-6 font-medium
-                                                {{ $transaction->type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                                        <td class="py-4 px-6 whitespace-nowrap font-medium
+                    {{ $transaction->type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
                                             {{ $transaction->account->currency }} {{ number_format($transaction->amount, 2) }}
                                         </td>
-                                        <td class="py-4 px-6">
+                                        <td class="py-4 px-6 whitespace-nowrap">
                                             <div class="flex space-x-3">
                                                 <a href="{{ route('transactions.edit', $transaction) }}"
                                                    class="text-blue-600 dark:text-blue-400 hover:underline">
@@ -189,7 +191,6 @@
                                 </tbody>
                             </table>
                         </div>
-
                         <div class="mt-4">
                             {{ $transactions->links() }}
                         </div>

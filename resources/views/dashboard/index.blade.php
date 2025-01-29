@@ -169,9 +169,14 @@
                                         <p>{{ $transaction->account->name }}</p>
                                     </div>
 
-                                    <!-- Category -->
-                                    <div class="mt-2">
-                                        <span class="text-sm text-gray-400">Category: {{ $transaction->category->name }}</span>
+                                    <!-- Category with Icon -->
+                                    <div class="mt-2 flex items-center">
+                                        <div class="w-6 h-6 rounded-full flex items-center justify-center mr-2"
+                                             style="background-color: {{ $transaction->category->color }}20">
+                                            <i class="fas fa-{{ $transaction->category->icon }} text-sm"
+                                               style="color: {{ $transaction->category->color }}"></i>
+                                        </div>
+                                        <span class="text-sm text-gray-400">{{ $transaction->category->name }}</span>
                                     </div>
                                 </div>
                             @endforeach
@@ -191,13 +196,19 @@
                                 <h4 class="text-gray-200 mb-2">Top Spending Categories</h4>
                                 @foreach($topCategories as $category)
                                     <div class="flex justify-between items-center mb-2">
-                                        <span class="text-gray-400">{{ $category->name }}</span>
+                                        <div class="flex items-center">
+                                            <div class="w-6 h-6 rounded-full flex items-center justify-center mr-2"
+                                                 style="background-color: {{ $category->color }}20">
+                                                <i class="fas fa-{{ $category->icon }} text-sm"
+                                                   style="color: {{ $category->color }}"></i>
+                                            </div>
+                                            <span class="text-gray-400">{{ $category->name }}</span>
+                                        </div>
                                         <span class="text-red-400">${{ number_format($category->total, 2) }}</span>
                                     </div>
                                 @endforeach
                             </div>
 
-                            <!-- Savings Rate -->
                             <div class="border border-gray-700 rounded-lg p-4">
                                 <h4 class="text-gray-200 mb-2">Monthly Savings Rate</h4>
                                 <div class="flex items-end space-x-2">

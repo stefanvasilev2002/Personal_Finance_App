@@ -38,6 +38,7 @@
                             </label>
                             <select name="type" id="type" required
                                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select Type</option>
                                 <option value="expense" {{ old('type') == 'expense' ? 'selected' : '' }}>Expense</option>
                                 <option value="income" {{ old('type') == 'income' ? 'selected' : '' }}>Income</option>
                             </select>
@@ -55,9 +56,9 @@
                                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">Select Category</option>
                                 @foreach($categories->groupBy('type') as $type => $typeCategories)
-                                    <optgroup label="{{ ucfirst($type) }}">
+                                    <optgroup label="{{ ucfirst($type) }}" data-type="{{ $type }}">
                                         @foreach($typeCategories as $category)
-                                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                            <option value="{{ $category->id }}" data-type="{{ $type }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
                                                 {{ $category->name }}
                                             </option>
                                         @endforeach
@@ -131,7 +132,7 @@
                             <x-back-button fallback-route="transactions.index" text="Back" />
 
                             <button type="submit"
-                                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    class="ml-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 Create Transaction
                             </button>
                         </div>
@@ -140,4 +141,46 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeSelect = document.getElementById('type');
+            const categorySelect = document.getElementById('category_id');
+
+            function filterCategories(selectedType) {
+                const options = categorySelect.getElementsByTagName('option');
+                for (let option of options) {
+                    if (option.value === '') continue;
+
+                    const optionType = option.getAttribute('data-type');
+                    if (!selectedType || selectedType === optionType) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                }
+
+                const currentOption = categorySelect.options[categorySelect.selectedIndex];
+                if (currentOption && currentOption.value !== '' && currentOption.getAttribute('data-type') !== selectedType) {
+                    categorySelect.value = '';
+                }
+            }
+
+            typeSelect.addEventListener('change', function() {
+                filterCategories(this.value);
+            });
+
+            categorySelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption && selectedOption.value !== '') {
+                    const categoryType = selectedOption.getAttribute('data-type');
+                    typeSelect.value = categoryType;
+                    filterCategories(categoryType);
+                }
+            });
+
+            if (typeSelect.value) {
+                filterCategories(typeSelect.value);
+            }
+        });
+    </script>
 </x-app-layout>
