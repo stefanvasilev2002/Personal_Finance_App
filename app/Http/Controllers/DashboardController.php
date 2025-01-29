@@ -84,12 +84,14 @@ class DashboardController extends Controller
         $upcomingBills = Transaction::whereIn('account_id', $accounts->pluck('id'))
             ->where('is_recurring', true)
             ->where('type', 'expense')
+            ->with(['category'])
             ->get()
             ->map(function ($transaction) use ($daysUntilNextMonth) {
                 return [
                     'description' => $transaction->description,
                     'amount' => $transaction->amount,
-                    'due_days' => $daysUntilNextMonth
+                    'due_days' => $daysUntilNextMonth,
+                    'category' => $transaction->category
                 ];
             })
             ->sortBy('due_days')

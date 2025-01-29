@@ -111,6 +111,13 @@
                                         <div class="mt-2">
                                             <p class="text-sm text-gray-400">{{ $bill['description'] }}</p>
                                         </div>
+                                        <div class="mt-2 flex items-center">
+                                            <div class="w-6 h-6 rounded-full flex items-center justify-center mr-2"
+                                                 style="background-color: {{ $bill['category']->color }}20">
+                                                <i class="fas fa-{{ $bill['category']->icon }} text-sm"
+                                                   style="color: {{ $bill['category']->color }}"></i>
+                                            </div>
+                                            <span class="text-sm text-gray-400">{{ $bill['category']['name'] }}</span>                                        </div>
                                     </div>
                                 @endforeach
                             </div>
