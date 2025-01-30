@@ -14,7 +14,8 @@ class Budget extends Model
         'category_id',
         'amount',
         'start_date',
-        'end_date'
+        'end_date',
+        'period'
     ];
 
     protected $casts = [
@@ -45,15 +46,20 @@ class Budget extends Model
         return $spending > $this->amount;
     }
 
+    public function isActive()
+    {
+        return !$this->end_date || now()->lte($this->end_date);
+    }
+
     public function getCurrentSpending()
     {
+        $endDate = $this->end_date ?? $this->getDefaultEndDate();
+        $queryEndDate = now()->lte($endDate) ? now() : $endDate;
+
         return $this->category
             ->transactions()
             ->where('type', 'expense')
-            ->whereBetween('date', [
-                $this->start_date,
-                $this->end_date ?? $this->getDefaultEndDate()
-            ])
+            ->whereBetween('date', [$this->start_date, $queryEndDate])
             ->sum('amount');
     }
 
@@ -65,7 +71,26 @@ class Budget extends Model
     public function getRemainingDays()
     {
         $endDate = $this->end_date ?? $this->getDefaultEndDate();
-        return round(max(0, now()->diffInDays($endDate)));
+        if (now()->gt($endDate)) {
+            return 0;
+        }
+        return max(0, now()->diffInDays($endDate));
+    }
+
+    public function getStatus()
+    {
+        if (!$this->isActive()) {
+            return 'expired';
+        }
+
+        $percentage = $this->getSpendingPercentage();
+        if ($percentage > 90) {
+            return 'over';
+        }
+        if ($percentage > 75) {
+            return 'warning';
+        }
+        return 'good';
     }
 
     public function getDailyBudget()
@@ -74,7 +99,7 @@ class Budget extends Model
         return $this->amount / $totalDays;
     }
 
-    protected function getDefaultEndDate()
+    public function getDefaultEndDate()
     {
         if ($this->period === 'monthly') {
             return $this->start_date->copy()->addMonth();

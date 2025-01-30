@@ -14,46 +14,90 @@ class BudgetController extends Controller
     public function index()
     {
         $budgets = auth()->user()->budgets()
-            ->with('category')
+            ->with(['category' => function($query) {
+                $query->where('type', '!=', 'income');
+            }])
+            ->whereHas('category', function($query) {
+                $query->where('type', '!=', 'income');
+            })
             ->get()
+            ->map(function ($budget) {
+                $budget->spent_amount = $budget->getCurrentSpending();
+                $budget->remaining_days = $budget->getRemainingDays();
+                $budget->daily_budget = $budget->getDailyBudget();
+                $budget->spending_percentage = $budget->getSpendingPercentage();
+                $budget->status = $budget->getStatus();
+                $budget->is_active = $budget->isActive();
+                return $budget;
+            })
             ->groupBy('category.type');
 
-        $totalBudget = $budgets->flatten()->sum('amount');
+        $totalBudget = $budgets->flatten()
+            ->filter(function ($budget) {
+                return $budget->is_active;
+            })
+            ->sum('amount');
 
-        $totalSpent = $budgets->flatten()->sum(function ($budget) {
-            return $budget->getCurrentSpending();
-        });
+        $totalSpent = $budgets->flatten()
+            ->filter(function ($budget) {
+                return $budget->is_active;
+            })
+            ->sum('spent_amount');
 
         $remaining = $totalBudget - $totalSpent;
 
         $categories = Category::where('user_id', auth()->id())
+            ->where('type', '!=', 'income')
             ->get()
             ->groupBy('type');
 
-        return view('budgets.index',
-            compact(
-                'budgets',
-                'categories',
-                'totalSpent',
-                'remaining',
-                'totalBudget'));
+        return view('budgets.index', compact(
+            'budgets',
+            'categories',
+            'totalSpent',
+            'remaining',
+            'totalBudget'
+        ));
     }
 
     public function create()
     {
-        $categories = auth()->user()->categories;
+        $categories = auth()->user()->categories()
+            ->where('type', '!=', 'income')
+            ->get();
+
         return view('budgets.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
+        $category = Category::findOrFail($request->category_id);
+        if ($category->type === 'income') {
+            return back()->withErrors(['category_id' => 'Income categories cannot have budgets']);
+        }
+
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) {
+                    $category = Category::find($value);
+                    if ($category && $category->type === 'income') {
+                        $fail('Income categories cannot have budgets.');
+                    }
+                },
+            ],
             'amount' => 'required|numeric|min:0',
             'period' => 'required|in:monthly,yearly',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date'
         ]);
+
+        $budget = new Budget($validated);
+        $budget->start_date = $validated['start_date'];
+        $budget->period = $validated['period'];
+
+        $validated['end_date'] = $validated['end_date'] ?? $budget->getDefaultEndDate();
 
         auth()->user()->budgets()->create($validated);
 
@@ -65,36 +109,66 @@ class BudgetController extends Controller
     {
         $this->authorize('view', $budget);
 
+        if ($budget->category->type === 'income') {
+            return redirect()->route('budgets.index')
+                ->with('error', 'Income categories cannot have budgets');
+        }
+
         $spending = $budget->category
             ->transactions()
             ->where('type', 'expense')
             ->whereBetween('date', [$budget->start_date, $budget->end_date ?? now()])
             ->sum('amount');
 
-        return view('budgets.show',
-            compact('budget', 'spending'));
+        return view('budgets.show', compact('budget', 'spending'));
     }
 
     public function edit(Budget $budget)
     {
         $this->authorize('update', $budget);
-        $categories = auth()->user()->categories;
 
-        return view('budgets.edit',
-            compact('budget', 'categories'));
+        if ($budget->category->type === 'income') {
+            return redirect()->route('budgets.index')
+                ->with('error', 'Income categories cannot have budgets');
+        }
+
+        $categories = auth()->user()->categories()
+            ->where('type', '!=', 'income')
+            ->get();
+
+        return view('budgets.edit', compact('budget', 'categories'));
     }
 
     public function update(Request $request, Budget $budget)
     {
         $this->authorize('update', $budget);
 
+        if ($budget->category->type === 'income') {
+            return redirect()->route('budgets.index')
+                ->with('error', 'Income categories cannot have budgets');
+        }
+
         $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) {
+                    $category = Category::find($value);
+                    if ($category && $category->type === 'income') {
+                        $fail('Income categories cannot have budgets.');
+                    }
+                },
+            ],
             'amount' => 'required|numeric|min:0',
             'period' => 'required|in:monthly,yearly',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date'
         ]);
+
+        $budget->start_date = $validated['start_date'];
+        $budget->period = $validated['period'];
+
+        $validated['end_date'] = $validated['end_date'] ?? $budget->getDefaultEndDate();
 
         $budget->update($validated);
 
@@ -105,6 +179,12 @@ class BudgetController extends Controller
     public function destroy(Budget $budget)
     {
         $this->authorize('delete', $budget);
+
+        if ($budget->category->type === 'income') {
+            return redirect()->route('budgets.index')
+                ->with('error', 'Income categories cannot have budgets');
+        }
+
         $budget->delete();
 
         return redirect()->route('budgets.index')
