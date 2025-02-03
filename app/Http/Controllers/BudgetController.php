@@ -30,6 +30,9 @@ class BudgetController extends Controller
                 $budget->is_active = $budget->isActive();
                 return $budget;
             })
+            ->sortByDesc(function($budget) {
+                return $budget->end_date ?? $budget->getDefaultEndDate();
+            })
             ->groupBy('category.type');
 
         $totalBudget = $budgets->flatten()

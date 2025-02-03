@@ -63,7 +63,7 @@ class DashboardController extends Controller
         }
 
         foreach ($user->budgets as $budget) {
-            if ($budget->isOverBudget()) {
+            if ($budget->isOverBudget() && $budget->end_date > Carbon::now() ) {
                 $alerts->push([
                     'type' => 'error',
                     'message' => "Budget alert: {$budget->category->name} has exceeded the monthly limit"
