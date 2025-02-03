@@ -196,39 +196,237 @@
                 <!-- Financial Insights -->
                 <div class="mt-6 bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <h3 class="text-lg font-medium text-gray-200 mb-4">Financial Insights</h3>
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-medium text-gray-200">Financial Insights</h3>
+                            <form action="{{ route('dashboard') }}" method="GET" class="flex items-center space-x-2">
+                                <!-- Preserve other query parameters -->
+                                @if(request()->has('months'))
+                                    <input type="hidden" name="months" value="{{ request('months') }}">
+                                @endif
+
+                                <label for="insight_date" class="text-sm text-gray-400">View for</label>
+                                <input
+                                    type="month"
+                                    id="insight_date"
+                                    name="insight_date"
+                                    value="{{ $selectedDate->format('Y-m') }}"
+                                    max="{{ now()->format('Y-m') }}"
+                                    class="bg-gray-700 text-gray-200 rounded-md text-sm p-1 border-gray-600"
+                                    onchange="this.form.submit()"
+                                >
+                            </form>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Monthly Spending Trend -->
                             <div class="border border-gray-700 rounded-lg p-4">
-                                <h4 class="text-gray-200 mb-2">Top Spending Categories</h4>
-                                @foreach($topCategories as $category)
-                                    <div class="flex justify-between items-center mb-2">
-                                        <div class="flex items-center">
-                                            <div class="w-6 h-6 rounded-full flex items-center justify-center mr-2"
-                                                 style="background-color: {{ $category->color }}20">
-                                                <i class="fas fa-{{ $category->icon }} text-sm"
-                                                   style="color: {{ $category->color }}"></i>
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="text-gray-200">Top Spending Categories</h4>
+                                    <span class="text-sm text-gray-400">{{ $selectedDate->format('F Y') }}</span>
+                                </div>
+                                @if($topCategories->isNotEmpty())
+                                    @foreach($topCategories as $category)
+                                        <div class="flex justify-between items-center mb-2">
+                                            <div class="flex items-center">
+                                                <div class="w-6 h-6 rounded-full flex items-center justify-center mr-2"
+                                                     style="background-color: {{ $category->color }}20">
+                                                    <i class="fas fa-{{ $category->icon }} text-sm"
+                                                       style="color: {{ $category->color }}"></i>
+                                                </div>
+                                                <span class="text-gray-400">{{ $category->name }}</span>
                                             </div>
-                                            <span class="text-gray-400">{{ $category->name }}</span>
+                                            <span class="text-red-400">${{ number_format($category->total, 2) }}</span>
                                         </div>
-                                        <span class="text-red-400">${{ number_format($category->total, 2) }}</span>
-                                    </div>
-                                @endforeach
+                                    @endforeach
+                                @else
+                                    <p class="text-gray-400 text-center py-4">No spending data for this month</p>
+                                @endif
                             </div>
 
                             <div class="border border-gray-700 rounded-lg p-4">
-                                <h4 class="text-gray-200 mb-2">Monthly Savings Rate</h4>
-                                <div class="flex items-end space-x-2">
-                                    <span class="text-2xl text-green-400">{{ $savingsRate }}%</span>
-                                    <span class="text-gray-400 text-sm">of income</span>
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="text-gray-200">Monthly Summary</h4>
+                                    <span class="text-sm text-gray-400">{{ $selectedDate->format('F Y') }}</span>
                                 </div>
-                                <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
-                                    <div class="bg-green-600 h-2.5 rounded-full" style="width: {{ $savingsRate }}%"></div>
+                                <div class="space-y-4">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Monthly Income</p>
+                                        <p class="text-xl text-green-400">${{ number_format($monthlyIncome, 2) }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-400">Monthly Expenses</p>
+                                        <p class="text-xl text-red-400">${{ number_format($monthlyExpenses, 2) }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-400">Monthly Savings</p>
+                                        <p class="text-xl text-blue-400">${{ number_format($monthlyIncome - $monthlyExpenses, 2) }}</p>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm text-gray-400">Savings Rate</h4>
+                                        <div class="flex items-end space-x-2">
+                                            <span class="text-2xl text-green-400">{{ $savingsRate }}%</span>
+                                            <span class="text-gray-400 text-sm">of income</span>
+                                        </div>
+                                        <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
+                                            <div class="bg-green-600 h-2.5 rounded-full" style="width: {{ $savingsRate }}%"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <!-- Historical Trends Section -->
+                <div class="mt-6 bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-medium text-gray-200">Historical Trends</h3>
+                            <form action="{{ route('dashboard') }}" method="GET" class="flex items-center space-x-2">
+                                <label for="months" class="text-sm text-gray-400">Show last</label>
+                                <select name="months" id="months" class="bg-gray-700 text-gray-200 rounded-md text-sm p-1" onchange="this.form.submit()">
+                                    @foreach([3, 6, 12, 24] as $monthOption)
+                                        <option value="{{ $monthOption }}" {{ $months == $monthOption ? 'selected' : '' }}>
+                                            {{ $monthOption }} months
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </form>
+                        </div>
+
+                        @if(count($monthlyStats) > 0)
+                            <!-- Trends Chart -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Chart -->
+                                <div class="relative" style="height: 300px;">
+                                    <canvas id="trendsChart"></canvas>
+                                </div>
+
+                                <!-- Monthly Summary -->
+                                <div class="border border-gray-700 rounded-lg p-4">
+                                    <h4 class="text-gray-200 mb-4">Monthly Summary</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <p class="text-sm text-gray-400">Average Monthly Income</p>
+                                            <p class="text-xl text-green-400">${{ number_format(collect($monthlyStats)->avg('income'), 2) }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-400">Average Monthly Expenses</p>
+                                            <p class="text-xl text-red-400">${{ number_format(collect($monthlyStats)->avg('expenses'), 2) }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-400">Average Monthly Savings</p>
+                                            <p class="text-xl text-blue-400">${{ number_format(collect($monthlyStats)->avg('savings'), 2) }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-400">Average Savings Rate</p>
+                                            <p class="text-xl text-purple-400">{{ number_format(collect($monthlyStats)->avg('savingsRate'), 1) }}%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Trends Table -->
+                            <div class="mt-6 overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-700">
+                                    <thead>
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Month</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Income</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Expenses</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Savings</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Savings Rate</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-700">
+                                    @foreach($monthlyStats as $stat)
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">{{ $stat['month'] }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-green-400">${{ number_format($stat['income'], 2) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-red-400">${{ number_format($stat['expenses'], 2) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-400">${{ number_format($stat['savings'], 2) }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-purple-400">{{ number_format($stat['savingsRate'], 1) }}%</td>
+                                        </tr>
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-gray-400 text-center py-4">No historical data available</p>
+                        @endif
+                    </div>
+                </div>
+                @push('scripts')
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const ctx = document.getElementById('trendsChart').getContext('2d');
+                            const stats = @json($monthlyStats);
+
+                            new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: stats.map(stat => stat.month),
+                                    datasets: [
+                                        {
+                                            label: 'Income',
+                                            data: stats.map(stat => stat.income),
+                                            borderColor: '#22c55e',
+                                            tension: 0.1
+                                        },
+                                        {
+                                            label: 'Expenses',
+                                            data: stats.map(stat => stat.expenses),
+                                            borderColor: '#ef4444',
+                                            tension: 0.1
+                                        },
+                                        {
+                                            label: 'Savings',
+                                            data: stats.map(stat => stat.savings),
+                                            borderColor: '#3b82f6',
+                                            tension: 0.1
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    interaction: {
+                                        mode: 'index',
+                                        intersect: false,
+                                    },
+                                    plugins: {
+                                        legend: {
+                                            labels: {
+                                                color: '#e5e7eb'
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        x: {
+                                            grid: {
+                                                color: '#374151'
+                                            },
+                                            ticks: {
+                                                color: '#9ca3af'
+                                            }
+                                        },
+                                        y: {
+                                            grid: {
+                                                color: '#374151'
+                                            },
+                                            ticks: {
+                                                color: '#9ca3af',
+                                                callback: function(value) {
+                                                    return '$' + value.toLocaleString();
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    </script>
+                @endpush
             </div>
         </div>
     </x-slot>

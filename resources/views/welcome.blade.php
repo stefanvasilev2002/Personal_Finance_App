@@ -81,7 +81,7 @@
     </div>
 </div>
 <!-- Features Grid -->
-<div class="py-32 relative">
+<div class="py-10 relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center">
             <h2 class="text-4xl font-bold text-white">Everything you need to succeed</h2>

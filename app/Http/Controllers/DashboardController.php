@@ -28,28 +28,22 @@ class DashboardController extends Controller
 
         $goals = $user->financialGoals;
 
-        $topCategories = Category::whereHas('transactions', function ($query) use ($accounts) {
-            $query->whereIn('account_id', $accounts->pluck('id'))
-                ->where('type', 'expense')
-                ->whereMonth('date', now()->month);
-        })
-            ->withSum(['transactions as total' => function ($query) use ($accounts) {
-                $query->whereIn('account_id', $accounts->pluck('id'))
-                    ->where('type', 'expense')
-                    ->whereMonth('date', now()->month);
-            }], 'amount')
-            ->orderByDesc('total')
-            ->take(5)
-            ->get();
+        $selectedDate = request()->get('insight_date')
+            ? Carbon::createFromFormat('Y-m', request()->get('insight_date'))
+            : now();
+
+        $topCategories = $this->getCategoryStats($accounts, $selectedDate);
 
         $monthlyIncome = Transaction::whereIn('account_id', $accounts->pluck('id'))
             ->where('type', 'income')
-            ->whereMonth('date', now()->month)
+            ->whereYear('date', $selectedDate->year)
+            ->whereMonth('date', $selectedDate->month)
             ->sum('amount');
 
         $monthlyExpenses = Transaction::whereIn('account_id', $accounts->pluck('id'))
             ->where('type', 'expense')
-            ->whereMonth('date', now()->month)
+            ->whereYear('date', $selectedDate->year)
+            ->whereMonth('date', $selectedDate->month)
             ->sum('amount');
 
         $savingsRate = $monthlyIncome > 0
@@ -97,6 +91,9 @@ class DashboardController extends Controller
             ->sortBy('due_days')
             ->take(5);
 
+        $months = request()->get('months', 6);
+        $monthlyStats = $this->getMonthlyStats($accounts, $months);
+
         return view('dashboard.index', compact(
             'accounts',
             'totalBalance',
@@ -106,7 +103,61 @@ class DashboardController extends Controller
             'topCategories',
             'savingsRate',
             'alerts',
-            'upcomingBills'
+            'upcomingBills',
+            'monthlyStats',
+            'months',
+            'selectedDate',
+            'monthlyIncome',
+            'monthlyExpenses'
         ));
+    }
+    private function getCategoryStats($accounts, $date)
+    {
+        return Category::whereHas('transactions', function ($query) use ($accounts, $date) {
+            $query->whereIn('account_id', $accounts->pluck('id'))
+                ->where('type', 'expense')
+                ->whereYear('date', $date->year)
+                ->whereMonth('date', $date->month);
+        })
+            ->withSum(['transactions as total' => function ($query) use ($accounts, $date) {
+                $query->whereIn('account_id', $accounts->pluck('id'))
+                    ->where('type', 'expense')
+                    ->whereYear('date', $date->year)
+                    ->whereMonth('date', $date->month);
+            }], 'amount')
+            ->orderByDesc('total')
+            ->take(5)
+            ->get();
+    }
+    private function getMonthlyStats($accounts, $months = 6)
+    {
+        $stats = [];
+        for ($i = 0; $i < $months; $i++) {
+            $date = now()->subMonths($i);
+
+            $income = Transaction::whereIn('account_id', $accounts->pluck('id'))
+                ->where('type', 'income')
+                ->whereYear('date', $date->year)
+                ->whereMonth('date', $date->month)
+                ->sum('amount');
+
+            $expenses = Transaction::whereIn('account_id', $accounts->pluck('id'))
+                ->where('type', 'expense')
+                ->whereYear('date', $date->year)
+                ->whereMonth('date', $date->month)
+                ->sum('amount');
+
+            $savingsRate = $income > 0 ? (($income - $expenses) / $income) * 100 : 0;
+
+            $stats[] = [
+                'month' => $date->format('M Y'),
+                'income' => $income,
+                'expenses' => $expenses,
+                'savings' => $income - $expenses,
+                'savingsRate' => round($savingsRate, 2)
+            ];
+        }
+
+        return array_reverse($stats);
     }
 }
