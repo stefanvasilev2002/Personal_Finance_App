@@ -89,7 +89,7 @@
                 </div>
 
                 @if($budget->is_active)
-                    @if($budget->spending_percentage > 90)
+                    @if($budget->spending_percentage > 100)
                         <div class="flex items-center text-sm text-red-600 dark:text-red-400">
                             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -43,7 +43,7 @@ class BudgetController extends Controller
                 return $budget;
             })
             ->sortByDesc(function($budget) {
-                return $budget->end_date ?? $budget->getDefaultEndDate();
+                return $budget->spending_percentage;
             })
             ->groupBy('category.type');
 

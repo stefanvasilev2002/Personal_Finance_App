@@ -67,7 +67,6 @@
                                 {{ ucfirst($type) }}
                             </h3>
 
-                            <!-- Rest of your existing budget cards code remains the same -->
                             @include('budgets.partials.budget-cards', ['typebudgets' => $typebudgets])
                         </div>
                     @empty
