@@ -10,9 +10,21 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class BudgetController extends Controller
 {
     use AuthorizesRequests;
+    private function renewBudgets()
+    {
+        $expiredBudgets = auth()->user()->budgets()
+            ->get()
+            ->filter(function($budget) {
+                return $budget->shouldRenew();
+            });
 
+        foreach ($expiredBudgets as $budget) {
+            $budget->renewBudget();
+        }
+    }
     public function index()
     {
+        $this->renewBudgets();
         $budgets = auth()->user()->budgets()
             ->with(['category' => function($query) {
                 $query->where('type', '!=', 'income');

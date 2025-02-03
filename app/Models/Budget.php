@@ -98,7 +98,49 @@ class Budget extends Model
         $totalDays = max(1, $this->start_date->diffInDays($this->end_date ?? $this->getDefaultEndDate()));
         return $this->amount / $totalDays;
     }
+    public function isExpired()
+    {
+        $endDate = $this->end_date ?? $this->getDefaultEndDate();
+        return now()->gt($endDate);
+    }
 
+    public function shouldRenew()
+    {
+        return $this->isExpired();
+    }
+
+    public function renewBudget()
+    {
+        if (!$this->shouldRenew()) {
+            return null;
+        }
+
+        $lastEndDate = $this->end_date ?? $this->getDefaultEndDate();
+
+        // Calculate new dates based on period
+        if ($this->period === 'monthly') {
+            $newStartDate = $lastEndDate->copy()->addDay();
+            $newEndDate = $newStartDate->copy()->addMonth()->subDay();
+        } else { // yearly
+            $newStartDate = $lastEndDate->copy()->addDay();
+            $newEndDate = $newStartDate->copy()->addYear()->subDay();
+        }
+
+        // Create new budget
+        $newBudget = self::create([
+            'user_id' => $this->user_id,
+            'category_id' => $this->category_id,
+            'amount' => $this->amount,
+            'period' => $this->period,
+            'start_date' => $newStartDate,
+            'end_date' => $newEndDate
+        ]);
+
+        // Delete the old expired budget
+        $this->delete();
+
+        return $newBudget;
+    }
     public function getDefaultEndDate()
     {
         if ($this->period === 'monthly') {
