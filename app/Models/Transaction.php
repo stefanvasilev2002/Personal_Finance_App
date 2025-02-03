@@ -28,7 +28,22 @@ class Transaction extends Model
     {
         return $this->belongsTo(Account::class);
     }
+    public function executeRecurring()
+    {
+        if (!$this->is_recurring) {
+            return null;
+        }
 
+        $newTransaction = $this->replicate();
+        $newTransaction->date = now();
+        $newTransaction->is_recurring = false;
+        $newTransaction->save();
+
+        $this->date = $this->date->addMonth();
+        $this->save();
+
+        return $newTransaction;
+    }
     public function category()
     {
         return $this->belongsTo(Category::class);

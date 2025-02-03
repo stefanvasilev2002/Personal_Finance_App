@@ -70,6 +70,18 @@ class DashboardController extends Controller
                 ]);
             }
         }
+        $upcomingRecurring = Transaction::where('is_recurring', true)
+            ->whereBetween('date', [now(), now()->addDays(7)])
+            ->get();
+
+        foreach ($upcomingRecurring as $transaction) {
+            $alerts->push([
+                'type' => 'warning',
+                'message' => "Upcoming recurring {$transaction->type}: {$transaction->description} - $" .
+                    number_format($transaction->amount, 2) .
+                    " due " . $transaction->date->format('M d, Y')
+            ]);
+        }
 
         $now = Carbon::now();
         $nextMonth = $now->copy()->addMonth()->startOfMonth();
