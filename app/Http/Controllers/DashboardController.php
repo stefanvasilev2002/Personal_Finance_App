@@ -70,8 +70,13 @@ class DashboardController extends Controller
                 ]);
             }
         }
+
+        $now = Carbon::now();
+        $nextMonth = $now->copy()->addMonth()->startOfMonth();
+        $daysUntilNextMonth = $now->diffInDays($nextMonth);
+
         $upcomingRecurring = Transaction::where('is_recurring', true)
-            ->whereBetween('date', [now(), now()->addDays(7)])
+            ->whereBetween('date', [now(), now()->addDays($daysUntilNextMonth)])
             ->get();
 
         foreach ($upcomingRecurring as $transaction) {
@@ -82,10 +87,6 @@ class DashboardController extends Controller
                     " due " . $transaction->date->format('M d, Y')
             ]);
         }
-
-        $now = Carbon::now();
-        $nextMonth = $now->copy()->addMonth()->startOfMonth();
-        $daysUntilNextMonth = $now->diffInDays($nextMonth);
 
         $upcomingBills = Transaction::whereIn('account_id', $accounts->pluck('id'))
             ->where('is_recurring', true)
