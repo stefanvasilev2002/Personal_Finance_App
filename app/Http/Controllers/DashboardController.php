@@ -103,6 +103,22 @@ class DashboardController extends Controller
             ->sortBy('due_days')
             ->take(5);
 
+        $upcomingIncomes = Transaction::whereIn('account_id', $accounts->pluck('id'))
+            ->where('is_recurring', true)
+            ->where('type', 'income')
+            ->with(['category'])
+            ->get()
+            ->map(function ($transaction) use ($daysUntilNextMonth) {
+                return [
+                    'description' => $transaction->description,
+                    'amount' => $transaction->amount,
+                    'due_days' => $daysUntilNextMonth,
+                    'category' => $transaction->category
+                ];
+            })
+            ->sortBy('due_days')
+            ->take(5);
+
         $months = request()->get('months', 6);
         $monthlyStats = $this->getMonthlyStats($accounts, $months);
 
@@ -116,6 +132,7 @@ class DashboardController extends Controller
             'savingsRate',
             'alerts',
             'upcomingBills',
+            'upcomingIncomes',
             'monthlyStats',
             'months',
             'selectedDate',

@@ -139,6 +139,48 @@
                     </div>
                 @endif
 
+                <!-- Upcoming Incomes Section -->
+                @if($upcomingIncomes->count() > 0)
+                    <div class="bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                        <div class="p-6">
+                            <h3 class="text-lg font-medium text-gray-200 mb-6">Upcoming Income</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                @foreach($upcomingIncomes as $income)
+                                    <div class="border border-gray-700 rounded-lg p-4 bg-gray-800 hover:bg-gray-750 transition-colors">
+                                        <!-- Income Type Indicator -->
+                                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-green-400">
+                                Recurring Income
+                            </span>
+                                            <span class="px-2 py-1 bg-blue-900 text-blue-200 text-xs rounded">
+                                Expected in {{ round($income['due_days'], mode: PHP_ROUND_HALF_DOWN) }} days
+                            </span>
+                                        </div>
+
+                                        <!-- Amount -->
+                                        <p class="text-xl font-bold text-green-400">
+                                            +${{ number_format($income['amount'], 2) }}
+                                        </p>
+
+                                        <!-- Description -->
+                                        <div class="mt-2">
+                                            <p class="text-sm text-gray-400">{{ $income['description'] }}</p>
+                                        </div>
+                                        <div class="mt-2 flex items-center">
+                                            <div class="w-6 h-6 rounded-full flex items-center justify-center mr-2"
+                                                 style="background-color: {{ $income['category']->color }}20">
+                                                <i class="fas fa-{{ $income['category']->icon }} text-sm"
+                                                   style="color: {{ $income['category']->color }}"></i>
+                                            </div>
+                                            <span class="text-sm text-gray-400">{{ $income['category']['name'] }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Accounts List -->
                 @if($accounts->count() > 0)
                     <div class="bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
