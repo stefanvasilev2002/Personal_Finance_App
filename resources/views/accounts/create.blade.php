@@ -75,7 +75,7 @@
                         <div class="flex justify-end">
                             <x-back-button fallback-route="accounts.index" text="Back" />
                             <button type="submit"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                    class="ml-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                 Create Account
                             </button>
                         </div>
