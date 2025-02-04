@@ -9,14 +9,15 @@
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <!-- Alerts Section -->
                 @if($alerts->count() > 0)
-                    <div class="mb-6" id="alertsContainer">
+                    <div class="fixed bottom-4 right-4 z-50 space-y-2 max-w-sm" id="alertsContainer">
                         @foreach($alerts as $alert)
-                            <div class="p-4 mb-2 rounded-lg flex justify-between items-center {{ $alert['type'] === 'error' ? 'bg-red-900 text-red-200' : 'bg-yellow-900 text-yellow-200' }}"
-                                 role="alert">
-                                <span>{{ $alert['message'] }}</span>
-                                <button class="dismiss-alert ml-4 hover:opacity-75 focus:outline-none"
+                            <div class="pl-2 p-3 rounded-lg flex justify-between items-center backdrop-blur-sm bg-opacity-90 shadow-lg transform transition-all duration-300 {{ $alert['type'] === 'error' ? 'bg-red-900/75 text-red-100' : 'bg-yellow-900/75 text-yellow-100' }}"
+                                 role="alert"
+                                 style="backdrop-filter: blur(8px);">
+                                <span class="text-sm">{{ $alert['message'] }}</span>
+                                <button class="dismiss-alert ml-3 hover:opacity-75 focus:outline-none"
                                         onclick="dismissAlert(this.parentElement)">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
                                 </button>
@@ -28,7 +29,7 @@
                 <script>
                     function dismissAlert(alertElement) {
                         alertElement.style.opacity = '0';
-                        alertElement.style.transform = 'translateX(-10px)';
+                        alertElement.style.transform = 'translateX(100px)';
                         setTimeout(() => {
                             alertElement.remove();
                             if (document.querySelectorAll('#alertsContainer > div').length === 0) {
@@ -39,8 +40,21 @@
 
                     document.addEventListener('DOMContentLoaded', () => {
                         const alerts = document.querySelectorAll('[role="alert"]');
-                        alerts.forEach(alert => {
+                        alerts.forEach((alert, index) => {
                             alert.style.transition = 'opacity 300ms, transform 300ms';
+                            alert.style.opacity = '0';
+                            alert.style.transform = 'translateX(100px)';
+
+                            setTimeout(() => {
+                                alert.style.opacity = '1';
+                                alert.style.transform = 'translateX(0)';
+                            }, index * 150);
+
+                            setTimeout(() => {
+                                if (alert.isConnected) {
+                                    dismissAlert(alert);
+                                }
+                            }, 5000 + (index * 150));
                         });
                     });
                 </script>
