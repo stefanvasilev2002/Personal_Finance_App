@@ -72,52 +72,57 @@ class DashboardController extends Controller
         }
 
         $now = Carbon::now();
-        $nextMonth = $now->copy()->addMonth()->startOfMonth();
-        $daysUntilNextMonth = $now->diffInDays($nextMonth);
+        $thirtyDaysFromNow = $now->copy()->addDays(30);
 
         $upcomingRecurring = Transaction::where('is_recurring', true)
-            ->whereBetween('date', [now(), now()->addDays($daysUntilNextMonth)])
+            ->whereBetween('date', [$now, $thirtyDaysFromNow])
             ->get();
 
         foreach ($upcomingRecurring as $transaction) {
+            $daysUntilDue = round($now->diffInDays($transaction->date));
             $alerts->push([
                 'type' => 'warning',
                 'message' => "Upcoming recurring {$transaction->type}: {$transaction->description} - $" .
                     number_format($transaction->amount, 2) .
-                    " due " . $transaction->date->format('M d, Y')
+                    " due " . $transaction->date->format('M d, Y') .
+                    " ({$daysUntilDue} days)"
             ]);
         }
 
         $upcomingBills = Transaction::whereIn('account_id', $accounts->pluck('id'))
             ->where('is_recurring', true)
             ->where('type', 'expense')
+            ->whereBetween('date', [$now, $thirtyDaysFromNow])
             ->with(['category'])
             ->get()
-            ->map(function ($transaction) use ($daysUntilNextMonth) {
+            ->map(function ($transaction) use ($now) {
                 return [
                     'description' => $transaction->description,
                     'amount' => $transaction->amount,
-                    'due_days' => $daysUntilNextMonth,
+                    'due_date' => $transaction->date,
+                    'due_days' => $now->diffInDays($transaction->date),
                     'category' => $transaction->category
                 ];
             })
-            ->sortBy('due_days')
+            ->sortBy('due_date')
             ->take(5);
 
         $upcomingIncomes = Transaction::whereIn('account_id', $accounts->pluck('id'))
             ->where('is_recurring', true)
             ->where('type', 'income')
+            ->whereBetween('date', [$now, $thirtyDaysFromNow])
             ->with(['category'])
             ->get()
-            ->map(function ($transaction) use ($daysUntilNextMonth) {
+            ->map(function ($transaction) use ($now) {
                 return [
                     'description' => $transaction->description,
                     'amount' => $transaction->amount,
-                    'due_days' => $daysUntilNextMonth,
+                    'due_date' => $transaction->date,
+                    'due_days' => $now->diffInDays($transaction->date),
                     'category' => $transaction->category
                 ];
             })
-            ->sortBy('due_days')
+            ->sortBy('due_date')
             ->take(5);
 
         $months = request()->get('months', 6);
@@ -141,6 +146,7 @@ class DashboardController extends Controller
             'monthlyExpenses'
         ));
     }
+
     private function getCategoryStats($accounts, $date)
     {
         return Category::whereHas('transactions', function ($query) use ($accounts, $date) {
@@ -159,6 +165,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
     }
+
     private function getMonthlyStats($accounts, $months = 6)
     {
         $stats = [];
